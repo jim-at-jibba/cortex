@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    // Environment setup & latest features
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+
+    // Monorepo support
+    "baseUrl": ".",
+    "paths": {
+      "cortex-cli": ["./packages/cortex-cli/src"],
+      "cortex-core": ["./packages/cortex-core/src"],
+      "cortex-daemon": ["./packages/cortex-daemon/src"],
+      "cortex-tui": ["./packages/cortex-tui/src"],
+      "cortex-templates": ["./packages/cortex-templates/src"]
+    }
+  },
+  "references": [
+    { "path": "./packages/cortex-cli" },
+    { "path": "./packages/cortex-core" },
+    { "path": "./packages/cortex-daemon" },
+    { "path": "./packages/cortex-tui" },
+    { "path": "./packages/cortex-templates" }
+  ]
+}

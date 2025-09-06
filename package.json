@@ -1,0 +1,24 @@
+{
+  "name": "cortex",
+  "version": "0.1.0",
+  "description": "AI-powered note-taking and knowledge management system",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run --filter='./packages/*' build",
+    "dev": "bun run --filter='cortex-cli' dev",
+    "test": "bun test --recursive",
+    "install-all": "bun install",
+    "clean": "rm -rf packages/*/dist packages/*/node_modules"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
