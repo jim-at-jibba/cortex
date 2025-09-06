@@ -1,0 +1,19 @@
+{
+  "name": "cortex-templates",
+  "version": "0.1.0",
+  "description": "Template system for Cortex note-taking system",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir dist --format esm --target bun",
+    "dev": "bun --hot ./src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "cortex-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}

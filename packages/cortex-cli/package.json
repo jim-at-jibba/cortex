@@ -1,0 +1,22 @@
+{
+  "name": "cortex-cli",
+  "version": "0.1.0",
+  "description": "CLI interface for Cortex note-taking system",
+  "type": "module",
+  "bin": {
+    "cortex": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir dist --format esm --target bun",
+    "dev": "bun --hot ./src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "cortex-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}
