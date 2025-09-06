@@ -204,21 +204,8 @@ tags: []
 export { DatabaseManager } from './database.js';
 export type { NoteRecord, EmbeddingRecord, MigrationRecord } from './database.js';
 
-export class AIManager {
-  constructor(private config: CortexConfig) {}
-  
-  async generateEmbedding(_text: string): Promise<number[]> {
-    // Implementation will be added in Task 4 
-    console.log('Using config:', this.config.aiProvider);
-    throw new Error('Not implemented');
-  }
-  
-  async chatCompletion(_messages: any[]): Promise<string> {
-    // Implementation will be added in Task 4
-    console.log('Using config:', this.config.aiProvider);
-    throw new Error('Not implemented');
-  }
-}
+// Export AI service
+export { AIProviderManager } from './ai-service.js';
 
 // Export configuration management
 export { ConfigManager } from './config.js';

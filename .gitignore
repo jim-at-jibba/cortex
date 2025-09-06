@@ -24,3 +24,8 @@ node_modules/
 # OS specific
 .DS_Store
 packages/*/dist/
+# Test artifacts
+packages/cortex-core/src/test_notes/
+packages/cortex-core/src/manual_test_notes/
+packages/cortex-core/src/*test*.db*
+packages/cortex-core/src/manual_test_vector_index.bin

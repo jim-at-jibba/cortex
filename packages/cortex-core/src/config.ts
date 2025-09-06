@@ -11,6 +11,7 @@ export interface CortexConfig {
   apiKeys: {
     openai?: string;
     anthropic?: string;
+    ollama?: string;
   };
   autoCommit: boolean;
   daemon: {
@@ -32,7 +33,8 @@ const configSchema = {
       type: 'object',
       properties: {
         openai: { type: 'string' },
-        anthropic: { type: 'string' }
+        anthropic: { type: 'string' },
+        ollama: { type: 'string' }
       },
       additionalProperties: false
     },
@@ -68,7 +70,8 @@ export class ConfigManager {
       chatModel: 'gpt-4',
       apiKeys: {
         openai: process.env.OPENAI_API_KEY,
-        anthropic: process.env.ANTHROPIC_API_KEY
+        anthropic: process.env.ANTHROPIC_API_KEY,
+        ollama: process.env.OLLAMA_API_KEY
       },
       autoCommit: true,
       daemon: {
