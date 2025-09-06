@@ -1,0 +1,463 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Project Structure and Core CLI Framework",
+        "description": "Initialize TypeScript project with Commander.js CLI framework and establish core architecture",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "details": "Create monorepo structure with packages: cortex-cli, cortex-core, cortex-daemon, cortex-tui, cortex-templates. Setup TypeScript 5.x configuration, esbuild for bundling, and Commander.js for CLI parsing. Implement basic command structure with subcommands (new, open, search, chat, embed, daemon, tui, sync, config, templates). Add configuration management with JSON schema validation and environment variable support for API keys. Setup package.json with proper dependencies including Vercel AI SDK, better-sqlite3, chokidar, marked, gray-matter.",
+        "testStrategy": "Unit tests for CLI command parsing, configuration loading/validation, and basic project structure. Integration tests for command registration and help text generation.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create monorepo structure with 5 packages",
+            "description": "Set up workspace structure with cortex-cli, cortex-core, cortex-daemon, cortex-tui, and cortex-templates packages",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Configure TypeScript with monorepo paths and build system",
+            "description": "Setup TypeScript 5.x configuration with proper path mapping and build configuration for all packages",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Commander.js CLI with all subcommands",
+            "description": "Build CLI interface with new, open, search, chat, embed, daemon, tui, sync, config, and templates commands",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Build configuration management system with JSON schema validation",
+            "description": "Create comprehensive config system with schema validation and environment variable support",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Set up Bun workspace configuration with dependencies",
+            "description": "Configure Bun workspace with proper dependencies including Vercel AI SDK, better-sqlite3, chokidar, marked, gray-matter",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Test CLI functionality and configuration system",
+            "description": "Verify CLI can be invoked and configuration management works correctly",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement Note Management System",
+        "description": "Build core note creation, editing, and file system operations with template support",
+        "status": "done",
+        "dependencies": [
+          1
+        ],
+        "priority": "high",
+        "details": "Complete note management system implementation with all major components: note creation with `cortex new` command supporting timestamp-based filenames and template selection, fuzzy file search using fuse.js for `cortex open` command, template engine with variable substitution, frontmatter parsing using gray-matter for YAML metadata, and comprehensive file operations with $EDITOR integration. All core functionality has been successfully implemented and tested.",
+        "testStrategy": "Comprehensive testing completed including unit tests for template rendering, file operations, and frontmatter parsing. Integration tests verified for note creation workflow and editor integration. Real-world testing conducted with actual note files and all command functionality confirmed working.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement note creation with cortex new command",
+            "description": "Create command for generating new notes with timestamp-based filenames and template support",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement fuzzy search with cortex open command",
+            "description": "Build full-text search using Fuse.js with configurable threshold, multiple selection interface, and preview mode",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create template engine with variable substitution",
+            "description": "Implement template system with built-in templates (default, daily, meeting) and variable substitution for date/time/title/custom variables",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement frontmatter and metadata management",
+            "description": "Build MetadataManager class with tag operations, search commands, and status management with automatic timestamp updates",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Create file operations and editor integration",
+            "description": "Implement FileOperations class with comprehensive file management, editor launching, and file statistics including reading time calculations",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Setup Database and Vector Storage",
+        "description": "Database and vector storage system successfully implemented with SQLite and hnswlib-node for efficient similarity search",
+        "status": "done",
+        "dependencies": [
+          1
+        ],
+        "priority": "high",
+        "details": "Successfully implemented complete database and vector storage system using Bun's native SQLite API for optimal compatibility. Features include: vector embeddings storage with hnswlib-node HNSW algorithm, database migration system with proper versioning, full-text search using SQLite FTS5, CRUD operations with prepared statements for security, vector index persistence and recovery, health checking and statistics. Database configured with WAL mode for concurrent access, cascade deletes for data integrity, and indexing on commonly queried fields. All 9 tests passing with comprehensive coverage.",
+        "testStrategy": "Comprehensive test suite implemented and passing (9/9 tests). Includes unit tests for database operations, migrations, and vector operations. Performance tests for similarity search with large datasets. Integration tests for concurrent access and transaction handling. Health check and statistics validation tests.",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Integrate Vercel AI SDK and Embedding Service",
+        "description": "Implement AI integration with multiple providers for embeddings and chat functionality",
+        "details": "Setup Vercel AI SDK with support for OpenAI, Anthropic, and local models via Ollama. Implement embedding generation service with configurable models (text-embedding-ada-002 for OpenAI). Add batch processing for efficient embedding generation and caching mechanisms. Implement retry logic with exponential backoff for API failures. Add streaming response support for chat interactions. Create provider abstraction layer for easy switching between AI services.",
+        "testStrategy": "Unit tests for AI provider integration and embedding generation. Mock API responses for testing offline scenarios. Integration tests for streaming responses and error handling. Performance tests for batch embedding processing.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Build Semantic Search and RAG System",
+        "description": "Implement semantic search using vector embeddings and RAG-based chat functionality",
+        "details": "Create semantic search engine using vector similarity with configurable similarity thresholds. Implement search ranking algorithm combining semantic similarity and metadata relevance. Build RAG system for chat functionality that retrieves relevant note contexts and generates responses with citations. Add search result formatting with snippets and relevance scores. Implement search filters for tags, dates, and custom frontmatter fields. Add search result caching for improved performance.",
+        "testStrategy": "Unit tests for vector similarity calculations and search ranking. Integration tests for RAG pipeline with mock embeddings. Performance tests for search response times with large note collections. Accuracy tests for semantic search relevance.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Vector Similarity Search Engine",
+            "description": "Create a semantic search engine using vector embeddings with configurable similarity thresholds",
+            "dependencies": [],
+            "details": "Implement vector similarity calculations using cosine similarity or dot product. Create an efficient vector search mechanism that works with the vector storage from Task 3. Add configurable similarity thresholds to filter out irrelevant results. Implement vector normalization and preprocessing. Design an API for querying the vector database that supports pagination and limit parameters. Add logging for search performance metrics.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop Search Ranking Algorithm",
+            "description": "Implement a hybrid search ranking algorithm that combines semantic similarity with metadata relevance",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Create a scoring function that weights vector similarity alongside metadata relevance factors. Implement BM25 or TF-IDF for keyword matching to complement vector similarity. Add recency bias options to prioritize newer notes. Implement tag and frontmatter field boosting to increase relevance of matches in specific metadata. Create a configurable weighting system for different ranking factors. Add relevance score normalization to provide consistent scoring across different queries.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build RAG Context Retrieval System",
+            "description": "Implement a system to retrieve relevant note contexts for use in the RAG pipeline",
+            "dependencies": [
+              "5.1",
+              "5.2"
+            ],
+            "details": "Create a context retrieval system that identifies the most relevant passages from notes based on a query. Implement chunking strategies for breaking notes into appropriate segments for retrieval. Add context window management to ensure retrieved contexts fit within model token limits. Implement relevance filtering to remove low-quality contexts. Create deduplication logic to avoid repetitive contexts. Add metadata enrichment to provide additional context about the source of retrieved passages.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Response Generation with Citations",
+            "description": "Build a system to generate responses based on retrieved contexts with proper citations to source notes",
+            "dependencies": [
+              "5.3"
+            ],
+            "details": "Integrate with the AI provider from Task 4 to generate responses based on retrieved contexts. Implement prompt engineering to encourage accurate citations. Create a citation formatting system that links back to original notes. Add confidence scoring for generated responses. Implement fallback mechanisms for when context retrieval fails to find relevant information. Create a system to detect and prevent hallucinations by validating generated content against retrieved contexts.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Add Search Filters and Metadata Integration",
+            "description": "Implement filtering capabilities for search results based on tags, dates, and custom frontmatter fields",
+            "dependencies": [
+              "5.2"
+            ],
+            "details": "Create a query parser that supports filter syntax for tags, dates, and frontmatter fields. Implement date range filtering with natural language support (e.g., 'last week', 'past month'). Add tag filtering with inclusion and exclusion options. Create frontmatter field filtering with comparison operators. Implement result highlighting to show matching terms in context. Add snippet generation to display relevant portions of matching notes. Create a unified API that combines vector search with metadata filtering.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Implement Search Result Caching and Performance Optimization",
+            "description": "Add caching mechanisms and performance optimizations for search functionality",
+            "dependencies": [
+              "5.1",
+              "5.2",
+              "5.5"
+            ],
+            "details": "Implement an LRU cache for search results to improve response times for repeated queries. Create cache invalidation strategies when notes are updated or deleted. Add query normalization to increase cache hit rates. Implement batch processing for large search operations. Create index optimization strategies for frequently searched terms or metadata. Add performance monitoring and logging to identify bottlenecks. Implement pagination support for large result sets to improve initial response times.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Develop Background Daemon Service",
+        "description": "Create daemon process for continuous file watching and embedding pipeline",
+        "details": "Implement daemon service using Node.js child processes with PM2-style process management. Add file system watching using chokidar for automatic detection of markdown file changes. Create job queue system for embedding requests with priority handling and batch processing. Implement health monitoring, auto-recovery from crashes, and graceful shutdown. Add IPC communication between CLI and daemon for status updates. Create daemon management commands (start, stop, status, logs) with proper error handling.",
+        "testStrategy": "Unit tests for queue management and file watching. Integration tests for daemon lifecycle and IPC communication. Stress tests for handling large numbers of file changes. Recovery tests for daemon crash scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement Terminal User Interface (TUI)",
+        "description": "Build interactive terminal interface using Ink with three-pane layout and keyboard navigation",
+        "details": "Create TUI application using Ink 5.x with three-pane layout: file browser, preview pane, and chat/search panel. Implement vim-style keyboard navigation (j/k for movement, Ctrl+F for search, Ctrl+A for chat). Add syntax highlighting for markdown preview using marked with custom renderer. Create interactive search with real-time results and debounced input. Implement chat interface with conversation history and streaming response display. Add status bar with keyboard shortcuts and system status indicators.",
+        "testStrategy": "Unit tests for TUI components and keyboard event handling. Integration tests for pane switching and search functionality. Visual regression tests for layout and rendering. Performance tests for large file lists and real-time updates.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Three-Pane Layout with Ink",
+            "description": "Create the basic TUI structure with three distinct panes using Ink 5.x",
+            "dependencies": [],
+            "details": "Implement the core layout structure with three panes: file browser on the left, preview pane in the center, and chat/search panel on the right. Use Ink's Box and Flexbox components for layout. Ensure proper sizing and proportions of each pane. Implement focus management between panes. Add basic styling and borders for visual separation. Create component hierarchy with main App component and separate components for each pane.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Vim-style Keyboard Navigation",
+            "description": "Add keyboard event handling with vim-inspired navigation controls",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Implement j/k keys for vertical movement within panes. Add h/l keys for horizontal navigation between panes. Implement Ctrl+F shortcut for activating search mode. Add Ctrl+A shortcut for activating chat mode. Create keyboard event handler system with proper focus management. Implement visual indicators for focused elements. Add support for Escape key to exit modes. Create keyboard shortcut help overlay accessible with '?' key.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create Markdown Preview with Syntax Highlighting",
+            "description": "Implement preview pane with markdown rendering and syntax highlighting",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Integrate marked library for markdown parsing. Create custom renderer for terminal-friendly output. Implement syntax highlighting for code blocks using appropriate terminal colors. Add support for common markdown elements (headings, lists, code blocks, tables, links). Implement scrolling for long documents. Create caching mechanism for rendered content to improve performance. Add support for image placeholders in terminal environment.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Interactive Search with Real-time Results",
+            "description": "Create search functionality with debounced input and live results",
+            "dependencies": [
+              "7.1",
+              "7.2"
+            ],
+            "details": "Implement search input field with cursor positioning and editing. Create debounced input handler to prevent excessive search operations. Implement real-time result display as user types. Add highlighting of search terms in results. Create navigation controls for search results. Implement search history with up/down arrow access. Add filtering options for search (filename, content, tags). Create empty and error states for search results.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build Chat Interface with Streaming Responses",
+            "description": "Implement chat panel with conversation history and streaming response display",
+            "dependencies": [
+              "7.1",
+              "7.2"
+            ],
+            "details": "Create chat input field with command history. Implement conversation display with user/assistant messages. Add streaming response rendering with cursor animation. Create message formatting with proper wrapping and styling. Implement scrolling for conversation history. Add loading indicators during response generation. Create error handling for failed requests. Implement conversation context management and history navigation.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add Status Bar and System Indicators",
+            "description": "Implement status bar with keyboard shortcuts and system status information",
+            "dependencies": [
+              "7.1",
+              "7.2"
+            ],
+            "details": "Create persistent status bar at bottom of interface. Implement dynamic keyboard shortcut display based on context. Add system status indicators (online/offline, API status, git status). Create progress indicators for background operations. Implement notification area for system messages. Add clock/timestamp display. Create memory usage and performance indicators. Implement color coding for status indicators.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Add Git Integration and Version Control",
+        "description": "Implement automatic git commits and sync functionality for note versioning",
+        "details": "Add git integration using simple-git library for automatic commits on file changes. Implement `cortex sync` command for manual git operations (add, commit, push, pull). Create configurable auto-commit with meaningful commit messages including timestamps and changed files. Add remote repository configuration and backup functionality. Implement conflict resolution helpers and merge status reporting. Add git ignore patterns for database and temporary files.",
+        "testStrategy": "Unit tests for git operations and commit message generation. Integration tests for auto-commit workflow and remote sync. Mock git operations for testing without actual repositories. Edge case tests for merge conflicts and repository states.",
+        "priority": "low",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement Error Handling and Offline Fallbacks",
+        "description": "Add comprehensive error handling with graceful degradation and offline capabilities",
+        "details": "Implement graceful fallback to local search when embeddings are unavailable. Add error boundary patterns for CLI commands with helpful error messages and recovery suggestions. Create offline mode detection and queue management for embedding requests during API outages. Implement local model fallback options using Ollama integration. Add comprehensive logging system with configurable log levels and rotation. Create health check system for all components with status reporting.",
+        "testStrategy": "Unit tests for error scenarios and fallback mechanisms. Integration tests for offline mode and API failure handling. Chaos engineering tests for network interruptions and service failures. User experience tests for error message clarity and recovery paths.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Optimize Performance and Scalability",
+        "description": "Implement performance optimizations for large note collections and efficient resource usage",
+        "details": "Add incremental indexing for large vaults with pagination support. Implement lazy loading in TUI for directories with thousands of files. Create configurable cache sizes and LRU eviction policies. Add database query optimization with proper indexing strategies. Implement memory usage monitoring and garbage collection optimization. Add batch processing optimizations for embedding generation. Create performance benchmarking suite and monitoring dashboard.",
+        "testStrategy": "Performance tests with 10,000+ note collections. Memory usage profiling and leak detection. Benchmark tests for search response times and embedding generation. Load tests for concurrent operations and daemon stability.",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Build Comprehensive Test Suite",
+        "description": "Create complete testing infrastructure with unit, integration, and E2E tests",
+        "details": "Setup Vitest for unit testing with coverage reporting and TypeScript support. Create integration test suite for CLI commands and daemon interactions. Implement E2E tests using Playwright for complete user workflows. Add mock services for AI providers and file system operations. Create test fixtures with sample note collections and configurations. Implement automated testing pipeline with CI/CD integration. Add performance regression tests and benchmarking suite.",
+        "testStrategy": "Achieve >90% code coverage for core modules. Automated test execution on multiple Node.js versions and platforms. Integration with GitHub Actions for continuous testing. Performance regression detection and reporting.",
+        "priority": "medium",
+        "dependencies": [
+          10
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Setup Unit Testing with Vitest",
+            "description": "Configure Vitest for unit testing with TypeScript support and coverage reporting",
+            "dependencies": [],
+            "details": "Install and configure Vitest with TypeScript integration. Set up test directory structure and naming conventions. Configure code coverage reporting with threshold targets (>90% for core modules). Create helper utilities for common testing patterns. Add test scripts to package.json for running different test suites. Implement watch mode for development testing. Create documentation for writing unit tests.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Integration Test Framework",
+            "description": "Create integration test suite for CLI commands and daemon interactions",
+            "dependencies": [
+              "11.1"
+            ],
+            "details": "Design integration test framework for testing CLI commands with input/output assertions. Create test harness for daemon service interactions and IPC communication. Implement database test utilities with isolated test databases. Add test helpers for file system operations with temporary directories. Create test runners for different integration scenarios. Implement cleanup mechanisms for test resources.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Develop E2E Testing with Playwright",
+            "description": "Implement end-to-end tests using Playwright for complete user workflows",
+            "dependencies": [
+              "11.1",
+              "11.2"
+            ],
+            "details": "Set up Playwright for E2E testing of CLI and daemon interactions. Create test scenarios for complete user workflows from installation to complex queries. Implement visual regression testing for TUI components. Add recording capabilities for test failures. Create test environments that simulate different user configurations and note collections. Implement parallel test execution for faster feedback.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create Mock Services and Test Fixtures",
+            "description": "Implement mock services for AI providers and create test fixtures with sample data",
+            "dependencies": [
+              "11.1"
+            ],
+            "details": "Develop mock implementations of AI provider APIs for testing without real API calls. Create sample note collections with varied content, frontmatter, and relationships. Implement fixture loading utilities for different test scenarios. Create configuration presets for testing different application modes. Add network condition simulators for testing offline capabilities and slow connections. Implement database seeding utilities for consistent test data.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Setup CI/CD Pipeline with Performance Testing",
+            "description": "Implement automated testing pipeline with CI/CD integration and performance benchmarking",
+            "dependencies": [
+              "11.1",
+              "11.2",
+              "11.3",
+              "11.4"
+            ],
+            "details": "Configure GitHub Actions workflow for continuous testing across multiple Node.js versions and platforms. Implement performance regression tests with benchmarking suite for critical operations. Create test reporting with visualization of results and trends. Add automated PR validation with test coverage requirements. Implement scheduled nightly tests for long-running scenarios. Create alerting for performance regressions and test failures. Add documentation for CI/CD process and interpreting test results.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Create Documentation and Installation System",
+        "description": "Develop comprehensive documentation, examples, and streamlined installation process",
+        "details": "Create comprehensive README with installation instructions and quick start guide. Write detailed CLI command documentation with examples and use cases. Create configuration reference with all available options and environment variables. Add troubleshooting guide for common issues and error scenarios. Implement installation scripts for npm/yarn/pnpm with proper dependency management. Create example templates and sample configurations. Add migration guide from other note-taking systems like Obsidian.",
+        "testStrategy": "Documentation accuracy tests with automated link checking. Installation testing on clean environments across platforms. User acceptance testing with developer community feedback. Example code validation and testing.",
+        "priority": "low",
+        "dependencies": [
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-09-05T19:53:10.889Z",
+      "updated": "2025-09-06T04:47:55.615Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
