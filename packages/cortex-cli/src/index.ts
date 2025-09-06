@@ -311,8 +311,108 @@ program
 program
   .command('chat')
   .description('Start AI chat session')
-  .action(() => {
-    console.log('Starting chat...');
+  .argument('[message]', 'Initial message to send')
+  .option('-s, --stream', 'Use streaming responses')
+  .action(async (message, options) => {
+    const { ConfigManager, AIProviderManager, DatabaseManager } = await import('cortex-core');
+    
+    try {
+      // Load configuration
+      const config = await ConfigManager.load();
+      
+      // Check if AI provider is configured
+      if (!config.apiKeys?.openai && !config.apiKeys?.anthropic && !config.apiKeys?.ollama) {
+        console.log('❌ No AI provider configured. Please set your API keys:');
+        console.log('   export OPENAI_API_KEY="your-key"');
+        console.log('   export ANTHROPIC_API_KEY="your-key"');
+        console.log('   export OLLAMA_API_KEY="your-key"');
+        console.log('Or use: cortex config --set "apiKeys.openai=your-key"');
+        process.exit(1);
+      }
+      
+      const aiManager = new AIProviderManager(config);
+      
+      // Test AI provider health
+      const health = await aiManager.healthCheck();
+      const workingProvider = Object.entries(health).find(([provider, isHealthy]) => isHealthy)?.[0];
+      
+      if (!workingProvider) {
+        console.log('❌ No AI providers are available. Check your API keys.');
+        process.exit(1);
+      }
+      
+      console.log(`🤖 Starting chat with ${workingProvider.toUpperCase()}`);
+      console.log('💡 Type "exit" or "quit" to end the session\n');
+      
+      const messages: Array<{role: string, content: string}> = [];
+      
+      // Add initial message if provided
+      if (message) {
+        messages.push({ role: 'user', content: message });
+        console.log(`👤 You: ${message}`);
+        
+        if (options.stream) {
+          process.stdout.write('🤖 AI: ');
+          const stream = await aiManager.streamChatCompletion(messages);
+          let response = '';
+          for await (const chunk of stream) {
+            process.stdout.write(chunk);
+            response += chunk;
+          }
+          console.log('\n');
+          messages.push({ role: 'assistant', content: response });
+        } else {
+          const response = await aiManager.chatCompletion(messages);
+          console.log(`🤖 AI: ${response}\n`);
+          messages.push({ role: 'assistant', content: response });
+        }
+      }
+      
+      // Interactive chat loop
+      while (true) {
+        process.stdout.write('👤 You: ');
+        process.stdin.setEncoding('utf8');
+        
+        const userInput = await new Promise<string>((resolve) => {
+          process.stdin.once('data', (data) => {
+            resolve(data.toString().trim());
+          });
+        });
+        
+        if (userInput.toLowerCase() === 'exit' || userInput.toLowerCase() === 'quit') {
+          console.log('👋 Chat ended. Goodbye!');
+          break;
+        }
+        
+        if (!userInput.trim()) continue;
+        
+        messages.push({ role: 'user', content: userInput });
+        
+        try {
+          if (options.stream) {
+            process.stdout.write('🤖 AI: ');
+            const stream = await aiManager.streamChatCompletion(messages);
+            let response = '';
+            for await (const chunk of stream) {
+              process.stdout.write(chunk);
+              response += chunk;
+            }
+            console.log('\n');
+            messages.push({ role: 'assistant', content: response });
+          } else {
+            const response = await aiManager.chatCompletion(messages);
+            console.log(`🤖 AI: ${response}\n`);
+            messages.push({ role: 'assistant', content: response });
+          }
+        } catch (error) {
+          console.error('❌ Chat error:', error instanceof Error ? error.message : 'Unknown error');
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to start chat:', error);
+      process.exit(1);
+    }
   });
 
 program
