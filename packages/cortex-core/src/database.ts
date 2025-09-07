@@ -311,6 +311,25 @@ export class DatabaseManager {
     return Array.from(float32Array);
   }
 
+  async getAllEmbeddings(): Promise<EmbeddingRecord[]> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const stmt = this.db.prepare('SELECT * FROM embeddings ORDER BY created_at DESC');
+    const results = stmt.all() as Array<{
+      id: number;
+      note_id: string;
+      embedding: Buffer;
+      created_at: string;
+    }>;
+    
+    return results.map(result => ({
+      id: result.id,
+      note_id: result.note_id,
+      embedding: new Float32Array(result.embedding.buffer),
+      created_at: result.created_at
+    }));
+  }
+
   async searchSimilarNotes(queryEmbedding: number[], k: number = 10): Promise<{ noteId: string; similarity: number }[]> {
     if (!this.db || !this.vectorIndex) throw new Error('Database or vector index not initialized');
 

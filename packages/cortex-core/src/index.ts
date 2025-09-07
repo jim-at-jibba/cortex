@@ -207,6 +207,35 @@ export type { NoteRecord, EmbeddingRecord, MigrationRecord } from './database.js
 // Export AI service
 export { AIProviderManager } from './ai-service.js';
 
+// Export search service
+export { SemanticSearchService } from './search-service.js';
+export type { SearchResult, SearchOptions, SearchFilters, RankingWeights } from './search-service.js';
+
+// Export ranking service
+export { RankingService } from './ranking-service.js';
+export type { HybridRankingConfig, BM25Params, TfIdfParams, DocumentStats, CorpusStats } from './ranking-service.js';
+
+// Export RAG service
+export { RAGContextService } from './rag-service.js';
+export type { 
+  RAGContext, 
+  ContextSource, 
+  ChunkingStrategy, 
+  RAGRetrievalConfig, 
+  RAGQuery, 
+  RAGRetrievalResult 
+} from './rag-service.js';
+
+// Export RAG chat service
+export { RAGChatService } from './rag-chat-service.js';
+export type {
+  ChatMessage,
+  ChatResponse,
+  Citation,
+  RAGChatConfig,
+  ConversationContext
+} from './rag-chat-service.js';
+
 // Export configuration management
 export { ConfigManager } from './config.js';
 export type { CortexConfig } from './config.js';
