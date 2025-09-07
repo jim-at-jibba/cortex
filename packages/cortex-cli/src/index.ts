@@ -609,8 +609,18 @@ program
 program
   .command('tui')
   .description('Launch terminal user interface')
-  .action(() => {
-    console.log('Launching TUI...');
+  .action(async () => {
+    try {
+      const { startTUI } = await import('cortex-tui');
+      startTUI();
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Raw mode is not supported')) {
+        console.error('❌ TUI Error: Raw mode is not supported in the current environment.');
+        console.error('💡 Try running the TUI in an interactive terminal or with: bun run ./dist/index.js tui');
+        process.exit(1);
+      }
+      throw error;
+    }
   });
 
 program
@@ -663,7 +673,7 @@ program
   });
 
 program
-  .command('templates')
+  .command('template')
   .description('Manage note templates')
   .option('-l, --list', 'List available templates')
   .option('-s, --show <name>', 'Show template content')

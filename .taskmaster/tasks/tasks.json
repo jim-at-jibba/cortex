@@ -314,7 +314,7 @@
           5,
           6
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -322,7 +322,7 @@
             "description": "Create the basic TUI structure with three distinct panes using Ink 5.x",
             "dependencies": [],
             "details": "Implement the core layout structure with three panes: file browser on the left, preview pane in the center, and chat/search panel on the right. Use Ink's Box and Flexbox components for layout. Ensure proper sizing and proportions of each pane. Implement focus management between panes. Add basic styling and borders for visual separation. Create component hierarchy with main App component and separate components for each pane.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -333,7 +333,7 @@
               "7.1"
             ],
             "details": "Implement j/k keys for vertical movement within panes. Add h/l keys for horizontal navigation between panes. Implement Ctrl+F shortcut for activating search mode. Add Ctrl+A shortcut for activating chat mode. Create keyboard event handler system with proper focus management. Implement visual indicators for focused elements. Add support for Escape key to exit modes. Create keyboard shortcut help overlay accessible with '?' key.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -344,7 +344,7 @@
               "7.1"
             ],
             "details": "Integrate marked library for markdown parsing. Create custom renderer for terminal-friendly output. Implement syntax highlighting for code blocks using appropriate terminal colors. Add support for common markdown elements (headings, lists, code blocks, tables, links). Implement scrolling for long documents. Create caching mechanism for rendered content to improve performance. Add support for image placeholders in terminal environment.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -356,7 +356,7 @@
               "7.2"
             ],
             "details": "Implement search input field with cursor positioning and editing. Create debounced input handler to prevent excessive search operations. Implement real-time result display as user types. Add highlighting of search terms in results. Create navigation controls for search results. Implement search history with up/down arrow access. Add filtering options for search (filename, content, tags). Create empty and error states for search results.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -368,7 +368,7 @@
               "7.2"
             ],
             "details": "Create chat input field with command history. Implement conversation display with user/assistant messages. Add streaming response rendering with cursor animation. Create message formatting with proper wrapping and styling. Implement scrolling for conversation history. Add loading indicators during response generation. Create error handling for failed requests. Implement conversation context management and history navigation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -380,7 +380,7 @@
               "7.2"
             ],
             "details": "Create persistent status bar at bottom of interface. Implement dynamic keyboard shortcut display based on context. Add system status indicators (online/offline, API status, git status). Create progress indicators for background operations. Implement notification area for system messages. Add clock/timestamp display. Create memory usage and performance indicators. Implement color coding for status indicators.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -513,7 +513,7 @@
     ],
     "metadata": {
       "created": "2025-09-05T19:53:10.889Z",
-      "updated": "2025-09-07T06:56:09.527Z",
+      "updated": "2025-09-07T07:34:14.774Z",
       "description": "Tasks for master context"
     }
   }
