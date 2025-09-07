@@ -7,7 +7,7 @@
     "cortex": "./dist/index.js"
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir dist --format esm --target bun",
+    "build": "bun build ./src/index.ts --outdir dist --format esm --target bun --external=hnswlib-node --external=@ai-sdk/* --external=ollama-ai-provider-v2",
     "dev": "bun --hot ./src/index.ts",
     "test": "bun test"
   },
