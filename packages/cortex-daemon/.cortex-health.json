@@ -1,0 +1,110 @@
+[
+  {
+    "timestamp": "2025-09-07T06:51:23.181Z",
+    "uptime": 0,
+    "memoryUsage": {
+      "rss": 53,
+      "heapUsed": 2,
+      "heapTotal": 3,
+      "external": 1
+    },
+    "cpuUsage": {
+      "user": 0.0097,
+      "system": 0.005399999999999999
+    },
+    "processId": 36549,
+    "queueSize": 0,
+    "processedJobs": 0,
+    "failedJobs": 0
+  },
+  {
+    "timestamp": "2025-09-07T06:51:24.190Z",
+    "uptime": 0,
+    "memoryUsage": {
+      "rss": 54,
+      "heapUsed": 2,
+      "heapTotal": 3,
+      "external": 1
+    },
+    "cpuUsage": {
+      "user": 0.08,
+      "system": 0.09499999999999999
+    },
+    "processId": 36549,
+    "queueSize": 0,
+    "processedJobs": 0,
+    "failedJobs": 0
+  },
+  {
+    "timestamp": "2025-09-07T06:51:25.196Z",
+    "uptime": 0,
+    "memoryUsage": {
+      "rss": 55,
+      "heapUsed": 3,
+      "heapTotal": 3,
+      "external": 1
+    },
+    "cpuUsage": {
+      "user": 0.0004066666666666666,
+      "system": 0.00044000000000000007
+    },
+    "processId": 36549,
+    "queueSize": 0,
+    "processedJobs": 0,
+    "failedJobs": 0
+  },
+  {
+    "timestamp": "2025-09-07T06:51:26.203Z",
+    "uptime": 0,
+    "memoryUsage": {
+      "rss": 55,
+      "heapUsed": 3,
+      "heapTotal": 3,
+      "external": 1
+    },
+    "cpuUsage": {
+      "user": 0.0009333333333333332,
+      "system": 0.0005533333333333333
+    },
+    "processId": 36549,
+    "queueSize": 0,
+    "processedJobs": 0,
+    "failedJobs": 0
+  },
+  {
+    "timestamp": "2025-09-07T06:51:28.211Z",
+    "uptime": 0,
+    "memoryUsage": {
+      "rss": 56,
+      "heapUsed": 3,
+      "heapTotal": 3,
+      "external": 1
+    },
+    "cpuUsage": {
+      "user": 0.00028,
+      "system": 0.00037
+    },
+    "processId": 36549,
+    "queueSize": 0,
+    "processedJobs": 0,
+    "failedJobs": 0
+  },
+  {
+    "timestamp": "2025-09-07T06:54:19.267Z",
+    "uptime": 0,
+    "memoryUsage": {
+      "rss": 53,
+      "heapUsed": 2,
+      "heapTotal": 3,
+      "external": 1
+    },
+    "cpuUsage": {
+      "user": 0.0137,
+      "system": 0.0084
+    },
+    "processId": 38958,
+    "queueSize": 0,
+    "processedJobs": 0,
+    "failedJobs": 0
+  }
+]

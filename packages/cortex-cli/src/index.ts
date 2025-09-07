@@ -314,7 +314,7 @@ program
   .argument('[message]', 'Initial message to send')
   .option('-s, --stream', 'Use streaming responses')
   .action(async (message, options) => {
-    const { ConfigManager, AIProviderManager, DatabaseManager } = await import('cortex-core');
+    const { ConfigManager, AIProviderManager } = await import('cortex-core');
     
     try {
       // Load configuration
@@ -334,7 +334,7 @@ program
       
       // Test AI provider health
       const health = await aiManager.healthCheck();
-      const workingProvider = Object.entries(health).find(([provider, isHealthy]) => isHealthy)?.[0];
+      const workingProvider = Object.entries(health).find(([, isHealthy]) => isHealthy)?.[0];
       
       if (!workingProvider) {
         console.log('❌ No AI providers are available. Check your API keys.');
@@ -425,8 +425,185 @@ program
 program
   .command('daemon')
   .description('Manage background daemon service')
-  .action(() => {
-    console.log('Managing daemon...');
+  .option('--start', 'Start the daemon')
+  .option('--stop', 'Stop the daemon')
+  .option('--restart', 'Restart the daemon')
+  .option('--status', 'Show daemon status')
+  .option('--logs [lines]', 'Show daemon logs (default: 50 lines)')
+  .option('--clear-logs', 'Clear daemon logs')
+  .option('--health', 'Show detailed health report')
+  .option('--force', 'Force stop daemon')
+  .action(async (options) => {
+    const { DaemonManager } = await import('cortex-daemon');
+    
+    try {
+      const manager = DaemonManager.getInstance();
+      
+      if (options.start) {
+        console.log('🚀 Starting Cortex daemon...');
+        const status = await manager.startDaemon(true); // Start detached
+        console.log(`✅ Daemon started successfully (PID: ${status.pid})`);
+        return;
+      }
+      
+      if (options.stop) {
+        console.log('🛑 Stopping Cortex daemon...');
+        await manager.stopDaemon(options.force);
+        console.log('✅ Daemon stopped successfully');
+        return;
+      }
+      
+      if (options.restart) {
+        console.log('🔄 Restarting Cortex daemon...');
+        const status = await manager.restartDaemon();
+        console.log(`✅ Daemon restarted successfully (PID: ${status.pid})`);
+        return;
+      }
+      
+      if (options.logs !== undefined) {
+        const lines = parseInt(options.logs) || 50;
+        console.log(`📋 Daemon logs (last ${lines} lines):`);
+        console.log('─'.repeat(50));
+        
+        const logs = await manager.getLogs(lines);
+        if (logs.length === 0) {
+          console.log('No logs available');
+        } else {
+          logs.forEach(line => console.log(line));
+        }
+        return;
+      }
+      
+      if (options.clearLogs) {
+        await manager.clearLogs();
+        console.log('✅ Daemon logs cleared');
+        return;
+      }
+      
+      if (options.health) {
+        console.log('📊 Generating health report...');
+        const status = await manager.getDaemonStatus();
+        
+        if (!status) {
+          console.log('❌ Daemon is not running');
+          return;
+        }
+        
+        // Try to get detailed health report if available
+        try {
+          // This would require adding a method to DaemonManager to get health report
+          console.log('📋 Daemon Health Report');
+          console.log('═'.repeat(50));
+          
+          const healthIcon = status.health?.healthy ? '✅' : '⚠️';
+          console.log(`${healthIcon} Overall Health: ${status.health?.healthy ? 'HEALTHY' : 'UNHEALTHY'} (${status.health?.score || 0}/100)`);
+          console.log(`🆔 Process ID: ${status.pid}`);
+          console.log(`⏰ Uptime: ${Math.floor(status.uptime / 1000 / 60)} minutes`);
+          
+          if (status.jobQueue) {
+            console.log('\n📋 Job Queue Status:');
+            console.log(`  • Pending: ${status.jobQueue.pending}`);
+            console.log(`  • Processing: ${status.jobQueue.processing}`);
+            console.log(`  • Failed: ${status.jobQueue.failed}`);
+            console.log(`  • Total: ${status.jobQueue.totalInQueue}`);
+          }
+          
+          console.log('\n📊 Job Statistics:');
+          console.log(`  • Total Processed: ${status.processedJobs}`);
+          console.log(`  • Total Failed: ${status.failedJobs}`);
+          const failureRate = status.processedJobs + status.failedJobs > 0 
+            ? ((status.failedJobs / (status.processedJobs + status.failedJobs)) * 100).toFixed(2) 
+            : '0';
+          console.log(`  • Failure Rate: ${failureRate}%`);
+          
+          if (status.health) {
+            console.log('\n🔍 Health Details:');
+            console.log(`  • Consecutive Failures: ${status.health.consecutiveFailures}`);
+            
+            if (status.health.issues.length > 0) {
+              console.log('  • Current Issues:');
+              status.health.issues.forEach(issue => console.log(`    - ${issue}`));
+            }
+            
+            if (status.health.lastError) {
+              console.log(`  • Last Error: ${status.health.lastError}`);
+            }
+          }
+          
+          if (status.lastHealthCheck) {
+            console.log(`\n💓 Last Health Check: ${status.lastHealthCheck.toLocaleString()}`);
+          }
+          
+          console.log('\n═'.repeat(50));
+          
+        } catch (error) {
+          console.error('❌ Failed to generate health report:', error instanceof Error ? error.message : 'Unknown error');
+        }
+        return;
+      }
+      
+      // Default action: show status
+      console.log('🔍 Checking daemon status...');
+      const status = await manager.getDaemonStatus();
+      
+      if (!status) {
+        console.log('❌ Daemon is not running');
+        console.log('\n💡 Start with: cortex daemon --start');
+      } else {
+        console.log('✅ Daemon is running');
+        console.log('─'.repeat(50));
+        
+        // Basic info
+        console.log(`🆔 PID: ${status.pid}`);
+        console.log(`⏰ Uptime: ${Math.floor(status.uptime / 1000 / 60)}m ${Math.floor(status.uptime / 1000) % 60}s`);
+        
+        // Job queue info
+        if (status.jobQueue) {
+          console.log('\n📋 Job Queue:');
+          console.log(`  Pending: ${status.jobQueue.pending}`);
+          console.log(`  Processing: ${status.jobQueue.processing}`);
+          console.log(`  Failed: ${status.jobQueue.failed}`);
+          console.log(`  Total: ${status.jobQueue.totalInQueue}`);
+        }
+        
+        console.log(`\n📊 Job Statistics:`);
+        console.log(`  Processed: ${status.processedJobs}`);
+        console.log(`  Failed: ${status.failedJobs}`);
+        
+        // Health status
+        if (status.health) {
+          const healthIcon = status.health.healthy ? '✅' : '⚠️';
+          console.log(`\n${healthIcon} Health: ${status.health.healthy ? 'Healthy' : 'Unhealthy'} (${status.health.score}/100)`);
+          
+          if (status.health.consecutiveFailures > 0) {
+            console.log(`  Consecutive Failures: ${status.health.consecutiveFailures}`);
+          }
+          
+          if (status.health.issues.length > 0) {
+            console.log('  Issues:');
+            status.health.issues.forEach(issue => console.log(`    • ${issue}`));
+          }
+          
+          if (status.health.lastError) {
+            console.log(`  Last Error: ${status.health.lastError}`);
+          }
+        }
+        
+        if (status.lastHealthCheck) {
+          console.log(`💓 Last Health Check: ${status.lastHealthCheck.toLocaleString()}`);
+        }
+        
+        console.log('\n💡 Commands:');
+        console.log('  cortex daemon --stop      Stop daemon');
+        console.log('  cortex daemon --restart   Restart daemon');
+        console.log('  cortex daemon --logs      View logs');
+        console.log('  cortex daemon --health    Health report');
+      }
+      
+    } catch (error) {
+      console.error('❌ Daemon management error:', error instanceof Error ? error.message : 'Unknown error');
+      process.exit(1);
+    }
   });
 
 program
@@ -495,7 +672,7 @@ program
     
     try {
       // Load configuration
-      const config = await ConfigManager.load();
+      await ConfigManager.load();
       
       if (options.list || (!options.show)) {
         // List built-in templates

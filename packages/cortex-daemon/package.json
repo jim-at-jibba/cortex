@@ -5,9 +5,10 @@
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir dist --format esm --target bun",
+    "build": "bun build ./src/index.ts --outdir dist --format esm --target bun && bun build ./src/daemon-process.ts --outdir dist --format esm --target bun",
     "dev": "bun --hot ./src/index.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "daemon": "bun ./src/daemon-process.ts"
   },
   "dependencies": {
     "cortex-core": "workspace:*",
