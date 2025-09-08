@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Box, Text } from 'ink';
+import { Box, Text, useInput } from 'ink';
 import fs from 'fs/promises';
 import path from 'path';
+import { ConfigManager } from 'cortex-core';
 
 export interface FileExplorerProps {
   focused: boolean;
@@ -34,13 +35,30 @@ export function FileExplorer({
   height
 }: FileExplorerProps): JSX.Element {
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [currentPath, setCurrentPath] = useState(process.cwd());
+  const [currentPath, setCurrentPath] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize with cortex notes directory
+  useEffect(() => {
+    const initializePath = async () => {
+      try {
+        const config = await ConfigManager.load();
+        setCurrentPath(config.notesPath);
+      } catch (err) {
+        setError('Failed to load cortex configuration');
+        setCurrentPath(process.cwd()); // Fallback to current directory
+      }
+    };
+    
+    initializePath();
+  }, []);
 
   // Load files from current directory
   useEffect(() => {
     const loadFiles = async () => {
+      if (!currentPath) return; // Wait for path initialization
+      
       try {
         setError(null);
         const entries = await fs.readdir(currentPath, { withFileTypes: true });
@@ -114,6 +132,33 @@ export function FileExplorer({
     }
   };
 
+  // Handle keyboard navigation within the file list
+  useInput((input, key) => {
+    if (!focused) return; // Only handle input when this pane is focused
+    
+    // Vim-style navigation
+    if (input === 'j' || key.downArrow) {
+      setSelectedIndex(prev => Math.min(prev + 1, filteredFiles.length - 1));
+      return;
+    }
+    
+    if (input === 'k' || key.upArrow) {
+      setSelectedIndex(prev => Math.max(prev - 1, 0));
+      return;
+    }
+    
+    // Enter to select file/directory
+    if (key.return && filteredFiles[selectedIndex]) {
+      handleSelect(filteredFiles[selectedIndex]);
+      return;
+    }
+  });
+
+  // Reset selection when files change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [filteredFiles]);
+
   // Get display items for current view
   const displayFiles = filteredFiles;
   const maxDisplayHeight = height - 4; // Account for borders and title
@@ -129,7 +174,7 @@ export function FileExplorer({
 
       {/* Current path */}
       <Box marginBottom={1}>
-        <Text dimColor>{path.relative(process.cwd(), currentPath) || '.'}</Text>
+        <Text dimColor>{currentPath ? path.basename(currentPath) : 'Loading...'}</Text>
       </Box>
 
       {/* Error display */}

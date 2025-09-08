@@ -47,19 +47,29 @@ const mockStreamText = mock().mockResolvedValue({
   }()
 });
 
-const mockCreateOpenAI = mock().mockReturnValue({
-  textEmbedding: mock().mockReturnValue('mock-embedding-model'),
-  call: mock().mockReturnValue('mock-chat-model')
-});
+const mockOpenAIProvider = Object.assign(
+  mock().mockReturnValue('mock-chat-model'),
+  {
+    textEmbedding: mock().mockReturnValue('mock-embedding-model')
+  }
+);
 
-const mockCreateAnthropic = mock().mockReturnValue({
-  call: mock().mockReturnValue('mock-anthropic-model')
-});
+const mockCreateOpenAI = mock().mockReturnValue(mockOpenAIProvider);
 
-const mockCreateOllama = mock().mockReturnValue({
-  textEmbeddingModel: mock().mockReturnValue('mock-ollama-embedding-model'),
-  call: mock().mockReturnValue('mock-ollama-model')
-});
+const mockAnthropicProvider = Object.assign(
+  mock().mockReturnValue('mock-anthropic-model'),
+  {}
+);
+
+const mockOllamaProvider = Object.assign(
+  mock().mockReturnValue('mock-ollama-model'),
+  {
+    textEmbeddingModel: mock().mockReturnValue('mock-ollama-embedding-model')
+  }
+);
+
+const mockCreateAnthropic = mock().mockReturnValue(mockAnthropicProvider);
+const mockCreateOllama = mock().mockReturnValue(mockOllamaProvider);
 
 // Mock the modules
 mock.module('ai', () => ({
