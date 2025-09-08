@@ -29,3 +29,5 @@ packages/cortex-core/src/test_notes/
 packages/cortex-core/src/manual_test_notes/
 packages/cortex-core/src/*test*.db*
 packages/cortex-core/src/manual_test_vector_index.bin
+.cortex-jobs.json
+.cortex-health.json
