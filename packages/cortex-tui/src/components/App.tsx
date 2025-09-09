@@ -2,7 +2,7 @@
  * Main App Component - Three Pane Layout
  */
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Box, useStdout } from 'ink';
 import { FileExplorer } from './FileExplorer';
 import { PreviewPane } from './PreviewPane';

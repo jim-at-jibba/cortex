@@ -3,9 +3,9 @@
  * Right pane for chat interface and search results
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Text, useInput } from 'ink';
-import { DatabaseManager, ConfigManager, SemanticSearchService, AIProviderManager, type SearchResult } from 'cortex-core';
+import { DatabaseManager, ConfigManager, SemanticSearchService, AIProviderManager, RAGChatService, RAGContextService, type SearchResult } from 'cortex-core';
 import { useSearch } from '../hooks/useSearch';
 import type { Mode } from './App';
 
@@ -41,8 +41,11 @@ export function ChatPane({
   const [messages, setMessages] = useState<Message[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchService, setSearchService] = useState<SemanticSearchService | null>(null);
+  const [chatService, setChatService] = useState<RAGChatService | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
   const [selectedResultIndex, setSelectedResultIndex] = useState(0);
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   // Use debounced search to prevent flickering
   const {
@@ -57,6 +60,48 @@ export function ChatPane({
   // Keep previous results visible until new ones load to prevent content jumping
   const [displayResults, setDisplayResults] = useState<SearchResult[]>([]);
   const [isFirstSearch, setIsFirstSearch] = useState(true);
+
+  // Handle sending chat messages
+  const handleSendMessage = async (message: string) => {
+    if (!chatService || isChatLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: message,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsChatLoading(true);
+    setChatError(null);
+
+    try {
+      const response = await chatService.generateResponse(message);
+      
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: response.content,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      setChatError(error instanceof Error ? error.message : 'Chat failed');
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'Sorry, I encountered an error while processing your message.',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
 
   // Sync local search query with parent when search query changes from parent
   useEffect(() => {
@@ -102,6 +147,10 @@ export function ChatPane({
       if (key.backspace || key.delete) {
         const newInput = input.slice(0, -1);
         onInputUpdate?.(newInput);
+      } else if (key.return && input.trim()) {
+        // Send the message when Enter is pressed
+        handleSendMessage(input.trim());
+        onInputUpdate?.(''); // Clear input
       } else if (inputChar && inputChar.length === 1 && !key.ctrl && !key.meta) {
         const newInput = input + inputChar;
         onInputUpdate?.(newInput);
@@ -114,22 +163,31 @@ export function ChatPane({
     setSelectedResultIndex(0);
   }, [displayResults]);
 
-  // Initialize search service
+  // Initialize services
   useEffect(() => {
-    const initializeSearch = async () => {
+    const initializeServices = async () => {
       try {
         const config = await ConfigManager.load();
         const dbManager = new DatabaseManager(config);
         await dbManager.initialize();
         const aiManager = new AIProviderManager(config);
-        const service = new SemanticSearchService(dbManager, aiManager);
-        setSearchService(service);
+        
+        // Initialize search service
+        const searchSvc = new SemanticSearchService(dbManager, aiManager);
+        setSearchService(searchSvc);
+
+        // Initialize chat service
+        const ragContextService = new RAGContextService(searchSvc);
+        const chatSvc = new RAGChatService(aiManager, ragContextService);
+        setChatService(chatSvc);
       } catch (error) {
-        setSearchError(error instanceof Error ? error.message : 'Failed to initialize search');
+        const errorMsg = error instanceof Error ? error.message : 'Failed to initialize services';
+        setSearchError(errorMsg);
+        setChatError(errorMsg);
       }
     };
 
-    initializeSearch();
+    initializeServices();
   }, []);
 
   // Handle search when in search mode - use debounced query to prevent flickering
@@ -240,11 +298,13 @@ export function ChatPane({
       {mode === 'chat' && (
         <Box flexDirection="column">
           {/* Chat messages */}
-          <Box flexDirection="column" marginBottom={1}>
-            {messages.length === 0 ? (
+          <Box flexDirection="column" marginBottom={1} height={maxDisplayHeight - 3}>
+            {chatError ? (
+              <Text color="red">❌ {chatError}</Text>
+            ) : messages.length === 0 ? (
               <Text dimColor>Start a conversation...</Text>
             ) : (
-              messages.slice(-maxDisplayHeight + 3).map((message) => (
+              messages.slice(-Math.floor(maxDisplayHeight / 3)).map((message) => (
                 <Box key={message.id} marginBottom={1}>
                   <Text color={message.type === 'user' ? 'green' : 'blue'}>
                     {message.type === 'user' ? '👤' : '🤖'} {message.content}
@@ -254,7 +314,11 @@ export function ChatPane({
             )}
 
             {/* Loading indicator for chat */}
-            {/* Remove chat loading indicator as it's not implemented yet */}
+            {isChatLoading && (
+              <Box marginBottom={1}>
+                <Text color="yellow">🤖 Thinking...</Text>
+              </Box>
+            )}
           </Box>
 
           {/* Chat input area */}

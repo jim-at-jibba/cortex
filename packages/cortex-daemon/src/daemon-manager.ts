@@ -80,7 +80,10 @@ export class DaemonManager {
   }
 
   private async stopDetachedDaemon(force = false): Promise<void> {
-    const pidFile = path.join(process.cwd(), '.cortex-daemon.pid');
+    // Get the cortex directory path (same as config.ts)
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '.';
+    const cortexDir = path.join(homeDir, '.cortex');
+    const pidFile = path.join(cortexDir, '.cortex-daemon.pid');
     
     try {
       const pidData = await fs.readFile(pidFile, 'utf-8');
@@ -124,7 +127,10 @@ export class DaemonManager {
   }
 
   private async getDetachedDaemonStatus(): Promise<DaemonStatus | null> {
-    const pidFile = path.join(process.cwd(), '.cortex-daemon.pid');
+    // Get the cortex directory path (same as config.ts)
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '.';
+    const cortexDir = path.join(homeDir, '.cortex');
+    const pidFile = path.join(cortexDir, '.cortex-daemon.pid');
     
     try {
       const pidData = await fs.readFile(pidFile, 'utf-8');
@@ -162,7 +168,10 @@ export class DaemonManager {
   }
 
   async getLogs(lines = 50): Promise<string[]> {
-    const logFile = path.join(process.cwd(), '.cortex-daemon.log');
+    // Get the cortex directory path (same as config.ts)
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '.';
+    const cortexDir = path.join(homeDir, '.cortex');
+    const logFile = path.join(cortexDir, '.cortex-daemon.log');
     
     try {
       const content = await fs.readFile(logFile, 'utf-8');
@@ -177,7 +186,10 @@ export class DaemonManager {
   }
 
   async clearLogs(): Promise<void> {
-    const logFile = path.join(process.cwd(), '.cortex-daemon.log');
+    // Get the cortex directory path (same as config.ts)
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '.';
+    const cortexDir = path.join(homeDir, '.cortex');
+    const logFile = path.join(cortexDir, '.cortex-daemon.log');
     
     try {
       await fs.writeFile(logFile, '');

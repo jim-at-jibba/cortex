@@ -9,6 +9,7 @@ import fs from 'fs/promises';
 import { FileWatcher } from './file-watcher.js';
 import { JobQueue, JobType, JobPriority } from './job-queue.js';
 import { HealthMonitor } from './health-monitor.js';
+import { ConfigManager, type CortexConfig } from 'cortex-core';
 import type { FileChangeEvent } from './file-watcher.js';
 import type { HealthStatus } from './health-monitor.js';
 
@@ -54,6 +55,7 @@ export interface DaemonStatus {
 
 export class CortexDaemon extends EventEmitter {
   private config: DaemonConfig;
+  private cortexConfig: CortexConfig | null = null;
   private isRunning = false;
   private startTime: Date | null = null;
   private lastHealthCheck: Date | null = null;
@@ -69,10 +71,14 @@ export class CortexDaemon extends EventEmitter {
   constructor(config: Partial<DaemonConfig> = {}) {
     super();
     
+    // Get the cortex directory path (same as config.ts)
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '.';
+    const cortexDir = path.join(homeDir, '.cortex');
+    
     this.config = {
-      pidFile: path.join(process.cwd(), '.cortex-daemon.pid'),
-      logFile: path.join(process.cwd(), '.cortex-daemon.log'),
-      watchPaths: [process.cwd()],
+      pidFile: path.join(cortexDir, '.cortex-daemon.pid'),
+      logFile: path.join(cortexDir, '.cortex-daemon.log'),
+      watchPaths: [process.cwd()], // Will be updated with actual notes path in start()
       ignorePaths: [
         '**/node_modules/**',
         '**/.git/**',
@@ -87,8 +93,8 @@ export class CortexDaemon extends EventEmitter {
       retryDelay: 5000,
       healthCheckInterval: 30000,
       maxConcurrentJobs: 3,
-      jobQueuePersistencePath: path.join(process.cwd(), '.cortex-jobs.json'),
-      healthMetricsPath: path.join(process.cwd(), '.cortex-health.json'),
+      jobQueuePersistencePath: path.join(cortexDir, '.cortex-jobs.json'),
+      healthMetricsPath: path.join(cortexDir, '.cortex-health.json'),
       maxMemoryMB: 500,
       maxCpuPercent: 80,
       ...config
@@ -107,12 +113,20 @@ export class CortexDaemon extends EventEmitter {
       await this.checkExistingProcess();
       await this.writePidFile();
       
+      // Load Cortex configuration to get the correct notes path
+      this.log('info', 'Loading Cortex configuration...');
+      this.cortexConfig = await ConfigManager.load();
+      
+      // Update watch paths to use ONLY the actual notes directory
+      this.config.watchPaths = [this.cortexConfig.notesPath];
+      this.log('info', `Watching notes directory exclusively: ${this.cortexConfig.notesPath}`);
+      
       this.isRunning = true;
       this.startTime = new Date();
       this.lastHealthCheck = new Date();
       
       this.log('info', `Cortex daemon starting (PID: ${process.pid})`);
-      this.log('info', `Config: ${JSON.stringify(this.config, null, 2)}`);
+      this.log('info', `Watch paths: ${JSON.stringify(this.config.watchPaths)}`);
       
       await this.startFileWatcher();
       await this.startJobQueue();
@@ -358,10 +372,65 @@ export class CortexDaemon extends EventEmitter {
       });
 
       this.jobQueue.registerProcessor(JobType.FILE_PROCESSING, async (job) => {
-        this.log('info', `Processing file: ${job.payload.filePath || job.payload.file}`);
-        // TODO: Implement actual file processing
-        await new Promise(resolve => setTimeout(resolve, 50)); // Simulate processing
-        return { success: true, message: 'File processed' };
+        const filePath = job.payload.filePath || job.payload.file;
+        this.log('info', `Processing file: ${filePath}`);
+        
+        try {
+          // Import required modules
+          const { DatabaseManager } = await import('cortex-core');
+          const matter = await import('gray-matter');
+          const { basename, extname } = await import('path');
+          
+          // Initialize database with cortex config
+          if (!this.cortexConfig) {
+            throw new Error('Cortex configuration not loaded');
+          }
+          
+          const dbManager = new DatabaseManager(this.cortexConfig);
+          await dbManager.initialize();
+          
+          // Read and parse the markdown file
+          const content = await Bun.file(filePath).text();
+          const parsed = matter.default(content);
+          
+          // Check if note already exists
+          const existingNote = await dbManager.getNoteByPath(filePath);
+          
+          if (existingNote) {
+            // Update existing note
+            const updates = {
+              title: parsed.data.title || basename(filePath, '.md'),
+              content: parsed.content,
+              frontmatter_json: JSON.stringify(parsed.data),
+              updated_at: new Date().toISOString(),
+              tags_json: JSON.stringify(parsed.data.tags || [])
+            };
+            
+            await dbManager.updateNote(existingNote.id, updates);
+            this.log('info', `File updated in database: ${updates.title}`);
+          } else {
+            // Create new note record
+            const noteRecord = {
+              id: basename(filePath, extname(filePath)),
+              title: parsed.data.title || basename(filePath, '.md'),
+              content: parsed.content,
+              path: filePath,
+              frontmatter_json: JSON.stringify(parsed.data),
+              created_at: new Date(parsed.data.created || Date.now()).toISOString(),
+              updated_at: new Date().toISOString(),
+              tags_json: JSON.stringify(parsed.data.tags || [])
+            };
+            
+            await dbManager.createNote(noteRecord);
+            this.log('info', `File created in database: ${noteRecord.title}`);
+          }
+          
+          return { success: true, message: 'File processed successfully' };
+          
+        } catch (error) {
+          this.log('error', `Failed to process file ${filePath}: ${error}`);
+          return { success: false, message: `Processing failed: ${error}` };
+        }
       });
 
       this.jobQueue.on('jobCompleted', (job) => {
