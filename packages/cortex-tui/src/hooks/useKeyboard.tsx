@@ -38,7 +38,7 @@ export function useKeyboard({
     if (key.ctrl) {
       if (input === 'f') { // Ctrl+F for search
         onSwitchMode('search');
-        onSwitchPane('files');
+        onSwitchPane('chat'); // Switch to chat pane for search input
         return;
       }
       if (input === 'a') { // Ctrl+A for chat

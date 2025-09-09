@@ -119,6 +119,8 @@ export function App(): JSX.Element {
             input={state.chatInput}
             onInputUpdate={updateChatInput}
             searchQuery={state.searchQuery}
+            onSearchUpdate={updateSearch}
+            onSelectFile={selectFile}
             height={terminalHeight}
           />
         </Box>

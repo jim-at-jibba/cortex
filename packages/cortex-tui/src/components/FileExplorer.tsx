@@ -44,7 +44,14 @@ export function FileExplorer({
     const initializePath = async () => {
       try {
         const config = await ConfigManager.load();
-        setCurrentPath(config.notesPath);
+        // Check if notes directory exists
+        try {
+          await fs.access(config.notesPath);
+          setCurrentPath(config.notesPath);
+        } catch {
+          // If notes directory doesn't exist, use current directory
+          setCurrentPath(process.cwd());
+        }
       } catch (err) {
         setError('Failed to load cortex configuration');
         setCurrentPath(process.cwd()); // Fallback to current directory
