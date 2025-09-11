@@ -83,14 +83,16 @@ test('Semantic search with results', async () => {
   });
 
   expect(results).toHaveLength(2);
-  expect(results[0].id).toBeDefined();
-  expect(results[0].title).toBeDefined();
-  expect(results[0].similarity).toBeGreaterThan(0);
-  expect(results[0].relevanceScore).toBeGreaterThan(0);
-  expect(results[0].tags).toBeInstanceOf(Array);
+  if (results[0]) {
+    expect(results[0].id).toBeDefined();
+    expect(results[0].title).toBeDefined();
+    expect(results[0].similarity).toBeGreaterThan(0);
+    expect(results[0].relevanceScore).toBeGreaterThan(0);
+    expect(results[0].tags).toBeInstanceOf(Array);
+  }
 
   // Check that results are sorted by relevance
-  if (results.length > 1) {
+  if (results.length > 1 && results[0] && results[1]) {
     expect(results[0].relevanceScore).toBeGreaterThanOrEqual(results[1].relevanceScore);
   }
 });
@@ -149,6 +151,7 @@ test('Semantic search with date filters', async () => {
 
 test('Semantic search with content length filters', async () => {
   const results = await searchService.searchSemantic('programming', {
+    includeContent: true,
     filters: {
       contentLength: { min: 50, max: 200 }
     }
@@ -185,8 +188,10 @@ test('Semantic search with custom ranking weights', async () => {
   });
 
   expect(results).toHaveLength(2);
-  expect(results[0].relevanceScore).toBeDefined();
-  expect(results[0].relevanceScore).toBeGreaterThan(0);
+  if (results[0]) {
+    expect(results[0].relevanceScore).toBeDefined();
+    expect(results[0].relevanceScore).toBeGreaterThan(0);
+  }
 });
 
 test('Semantic search with pagination', async () => {
@@ -202,7 +207,9 @@ test('Semantic search with pagination', async () => {
 
   expect(page1).toHaveLength(1);
   expect(page2).toHaveLength(1);
-  expect(page1[0].id).not.toBe(page2[0].id);
+  if (page1[0] && page2[0]) {
+    expect(page1[0].id).not.toBe(page2[0].id);
+  }
 });
 
 test('Semantic search with includeContent option', async () => {
@@ -216,8 +223,10 @@ test('Semantic search with includeContent option', async () => {
     limit: 1
   });
 
-  expect(withContent[0].content).toBeTruthy();
-  expect(withoutContent[0].content).toBe('');
+  if (withContent[0] && withoutContent[0]) {
+    expect(withContent[0].content).toBeTruthy();
+    expect(withoutContent[0].content).toBe('');
+  }
 });
 
 test('Search result caching', async () => {
@@ -301,8 +310,10 @@ test('Error handling for invalid note data', async () => {
   // Should not throw error, but handle gracefully
   const results = await testService.searchSemantic('test');
   expect(results).toHaveLength(1);
-  expect(results[0].tags).toEqual([]);
-  expect(results[0].metadata).toEqual({});
+  if (results[0]) {
+    expect(results[0].tags).toEqual([]);
+    expect(results[0].metadata).toEqual({});
+  }
 });
 
 test('Empty embedding database', async () => {

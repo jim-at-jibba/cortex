@@ -410,7 +410,53 @@
           6
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Graceful Fallback for Search",
+            "description": "Create a fallback mechanism that switches to local search when embeddings are unavailable",
+            "dependencies": [],
+            "details": "Implement detection of embedding service availability. Create a fallback search algorithm using local fuzzy search with fuse.js. Add seamless transition between vector and local search modes. Include user notification about fallback mode activation. Implement configuration options to customize fallback behavior.\n<info added on 2025-09-11T16:04:03.300Z>\nSuccessfully implemented graceful fallback for search functionality. Created FallbackSearchService class using Fuse.js for fuzzy matching when embeddings are unavailable. Integrated fallback mechanism into SemanticSearchService with automatic detection and seamless transition. Added comprehensive error handling, user notifications, and configuration options. Implementation includes:\n\n1. FallbackSearchService with Fuse.js integration for local fuzzy search\n2. Automatic fallback detection when embedding generation fails\n3. Seamless transition between vector and local search modes\n4. User notification about fallback mode activation\n5. Configuration options for customizing fallback behavior\n6. Support for all existing search filters (tags, dates, metadata, content length)\n7. Proper error handling and graceful degradation\n8. Comprehensive test coverage for all fallback scenarios\n\nThe fallback mechanism ensures that search functionality remains available even when AI services are down, providing a robust offline-capable search experience.\n</info added on 2025-09-11T16:04:03.300Z>",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop Error Boundary Patterns for CLI Commands",
+            "description": "Create standardized error handling patterns for all CLI commands with helpful messages",
+            "dependencies": [],
+            "details": "Design error boundary wrapper for command execution. Implement categorized error types (network, permission, configuration, etc.). Create helpful error messages with recovery suggestions. Add debug mode with detailed error information. Implement graceful exit handling with appropriate exit codes.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build Offline Mode Detection and Queue Management",
+            "description": "Create a system to detect network availability and queue embedding requests during outages",
+            "dependencies": [],
+            "details": "Implement network connectivity detection. Create persistent queue for storing embedding requests during offline periods. Add background processing to handle queued requests when connectivity returns. Implement priority system for queue processing. Add user notifications about offline status and queue progress.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Integrate Local Model Fallback with Ollama",
+            "description": "Implement fallback to local models when cloud AI services are unavailable",
+            "dependencies": [],
+            "details": "Setup Ollama integration for local model execution. Create automatic switching between cloud and local models based on availability. Implement model compatibility checking and parameter adjustment. Add configuration options for local model preferences. Create performance monitoring for local model execution.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Develop Comprehensive Logging System",
+            "description": "Create a configurable logging system with different levels and rotation capabilities",
+            "dependencies": [],
+            "details": "Implement structured logging with configurable levels (debug, info, warn, error). Add log rotation based on size and time. Create log filtering capabilities. Implement context-aware logging with request IDs. Add performance metrics logging. Create log viewer command for easy troubleshooting.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 10,
@@ -513,7 +559,7 @@
     ],
     "metadata": {
       "created": "2025-09-05T19:53:10.889Z",
-      "updated": "2025-09-07T07:34:14.774Z",
+      "updated": "2025-09-11T16:03:23.966Z",
       "description": "Tasks for master context"
     }
   }

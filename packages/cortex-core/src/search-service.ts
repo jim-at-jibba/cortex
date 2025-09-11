@@ -1,6 +1,7 @@
 import type { DatabaseManager, NoteRecord, EmbeddingRecord } from './database.js';
 import { AIProviderManager } from './ai-service.js';
 import { RankingService, type HybridRankingConfig } from './ranking-service.js';
+import { FallbackSearchService } from './fallback-search-service.js';
 
 export interface SearchResult {
   id: string;
@@ -56,6 +57,7 @@ export class SemanticSearchService {
   private searchCache: VectorSearchCache = {};
   private readonly cacheExpiry = 5 * 60 * 1000; // 5 minutes
   private rankingService: RankingService;
+  private fallbackSearchService: FallbackSearchService;
   private defaultRankingWeights: RankingWeights = {
     similarity: 0.7,
     recency: 0.15,
@@ -69,6 +71,7 @@ export class SemanticSearchService {
     rankingConfig?: Partial<HybridRankingConfig>
   ) {
     this.rankingService = new RankingService(rankingConfig);
+    this.fallbackSearchService = new FallbackSearchService(database);
   }
 
   /**
@@ -145,7 +148,23 @@ export class SemanticSearchService {
 
     } catch (error) {
       console.error('❌ Semantic search failed:', error);
-      throw new Error(`Semantic search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.log('🔄 Attempting fallback search...');
+      
+      try {
+        // Attempt fallback search
+        const fallbackResults = await this.fallbackSearchService.searchFallback(query, options);
+        console.log(`✅ Fallback search completed with ${fallbackResults.length} results`);
+        
+        // Add notification about fallback mode
+        if (fallbackResults.length > 0) {
+          console.log('⚠️  Running in fallback mode - using local fuzzy search instead of embeddings');
+        }
+        
+        return fallbackResults;
+      } catch (fallbackError) {
+        console.error('❌ Fallback search also failed:', fallbackError);
+        throw new Error(`Both semantic and fallback search failed. Semantic error: ${error instanceof Error ? error.message : 'Unknown error'}. Fallback error: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown error'}`);
+      }
     }
   }
 
@@ -464,5 +483,48 @@ export class SemanticSearchService {
         delete this.searchCache[key];
       }
     });
+  }
+
+  /**
+   * Check if semantic search is available (embeddings working)
+   */
+  async isSemanticSearchAvailable(): Promise<boolean> {
+    try {
+      // Try to generate a test embedding
+      await this.aiManager.generateEmbedding('test');
+      return true;
+    } catch (error) {
+      console.warn('Semantic search not available:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if fallback search is available
+   */
+  isFallbackSearchAvailable(): boolean {
+    return this.fallbackSearchService.isAvailable();
+  }
+
+  /**
+   * Get search service status
+   */
+  async getSearchStatus(): Promise<{
+    semanticAvailable: boolean;
+    fallbackAvailable: boolean;
+    fallbackStats: { isReady: boolean; lastUpdate: number; noteCount?: number };
+  }> {
+    return {
+      semanticAvailable: await this.isSemanticSearchAvailable(),
+      fallbackAvailable: this.isFallbackSearchAvailable(),
+      fallbackStats: this.fallbackSearchService.getIndexStats()
+    };
+  }
+
+  /**
+   * Force rebuild of fallback search index
+   */
+  async rebuildFallbackIndex(): Promise<void> {
+    await this.fallbackSearchService.rebuildIndex();
   }
 }
