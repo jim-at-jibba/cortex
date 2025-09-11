@@ -3,7 +3,7 @@
  * Right pane for chat interface and search results
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { DatabaseManager, ConfigManager, SemanticSearchService, AIProviderManager, RAGChatService, RAGContextService, type SearchResult } from 'cortex-core';
 import { useSearch } from '../hooks/useSearch';
@@ -18,6 +18,7 @@ export interface ChatPaneProps {
   onSearchUpdate: (query: string) => void;
   onSelectFile?: (filePath: string) => void;
   height: number;
+  width: number;
 }
 
 interface Message {
@@ -36,7 +37,8 @@ export function ChatPane({
   searchQuery,
   onSearchUpdate,
   onSelectFile,
-  height
+  height,
+  width
 }: ChatPaneProps): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -46,6 +48,23 @@ export function ChatPane({
   const [chatError, setChatError] = useState<string | null>(null);
   const [selectedResultIndex, setSelectedResultIndex] = useState(0);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [lineScrollOffset, setLineScrollOffset] = useState(0);
+  const [autoScroll, setAutoScroll] = useState(true);
+
+  // Text wrapping function
+  const wrapText = (txt: string, w: number): string[] => {
+    const width = Math.max(10, w); // safety
+    const lines: string[] = [];
+    for (const raw of txt.split(/\r?\n/)) {
+      let cur = raw;
+      while (cur.length > width) {
+        lines.push(cur.slice(0, width));
+        cur = cur.slice(width);
+      }
+      lines.push(cur);
+    }
+    return lines;
+  };
 
   // Use debounced search to prevent flickering
   const {
@@ -61,6 +80,13 @@ export function ChatPane({
   const [displayResults, setDisplayResults] = useState<SearchResult[]>([]);
   const [isFirstSearch, setIsFirstSearch] = useState(true);
 
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (autoScroll && messages.length > 0) {
+      setLineScrollOffset(0); // Reset to show latest messages
+    }
+  }, [messages, autoScroll]);
+
   // Handle sending chat messages
   const handleSendMessage = async (message: string) => {
     if (!chatService || isChatLoading) return;
@@ -75,6 +101,7 @@ export function ChatPane({
     setMessages(prev => [...prev, userMessage]);
     setIsChatLoading(true);
     setChatError(null);
+    setAutoScroll(true); // Enable auto-scroll when sending message
 
     try {
       const response = await chatService.generateResponse(message);
@@ -143,6 +170,21 @@ export function ChatPane({
         onSearchUpdate?.(newQuery);
       }
     } else if (mode === 'chat') {
+      // Handle chat scrolling
+      if ((inputChar === 'j' || key.downArrow) && messages.length > 0) {
+        setAutoScroll(false);
+        setLineScrollOffset(prev => prev + 1);
+        return;
+      }
+      if ((inputChar === 'k' || key.upArrow) && messages.length > 0) {
+        setLineScrollOffset(prev => {
+          const newOffset = Math.max(prev - 1, 0);
+          if (newOffset === 0) setAutoScroll(true); // Re-enable auto-scroll when back at bottom
+          return newOffset;
+        });
+        return;
+      }
+      
       // Handle chat input (similar logic)
       if (key.backspace || key.delete) {
         const newInput = input.slice(0, -1);
@@ -224,6 +266,45 @@ export function ChatPane({
   }, [mode, debouncedQuery, searchService, isFirstSearch]);
 
   const maxDisplayHeight = height - 4; // Account for borders and header
+  const chatViewHeight = maxDisplayHeight - 3; // Available height for chat messages
+
+  // Compute all display lines with proper wrapping
+  const allLines = useMemo(() => {
+    const availWidth = width - 4; // account for borders/padding/icons
+    const lines: { key: string; type: Message['type']; text: string }[] = [];
+    messages.forEach(m => {
+      const icon = m.type === 'user' ? '👤 ' : '🤖 ';
+      const wrapped = wrapText(m.content, availWidth - icon.length);
+      wrapped.forEach((l, i) => {
+        lines.push({
+          key: `${m.id}:${i}`,
+          type: m.type,
+          text: (i === 0 ? icon : '   ') + l
+        });
+      });
+      // Add spacer line after each message
+      lines.push({ key: `${m.id}:spacer`, type: m.type, text: '' });
+    });
+    return lines;
+  }, [messages, width]);
+
+  // Auto-scroll and clamp offset when content changes
+  useEffect(() => {
+    if (autoScroll) {
+      setLineScrollOffset(0);
+    } else {
+      // Clamp offset if content shrank
+      const maxOffset = Math.max(0, allLines.length - chatViewHeight);
+      setLineScrollOffset(o => Math.min(o, maxOffset));
+    }
+  }, [allLines, autoScroll, chatViewHeight]);
+
+  // Calculate visible lines
+  const maxOffset = Math.max(0, allLines.length - chatViewHeight);
+  const clampedOffset = Math.min(lineScrollOffset, maxOffset);
+  const start = Math.max(0, allLines.length - chatViewHeight - clampedOffset);
+  const end = start + chatViewHeight;
+  const visibleLines = allLines.slice(start, end);
 
   return (
     <Box flexDirection="column" paddingX={1}>
@@ -298,18 +379,16 @@ export function ChatPane({
       {mode === 'chat' && (
         <Box flexDirection="column">
           {/* Chat messages */}
-          <Box flexDirection="column" marginBottom={1} height={maxDisplayHeight - 3}>
+          <Box flexDirection="column" marginBottom={1} height={chatViewHeight}>
             {chatError ? (
               <Text color="red">❌ {chatError}</Text>
-            ) : messages.length === 0 ? (
+            ) : visibleLines.length === 0 ? (
               <Text dimColor>Start a conversation...</Text>
             ) : (
-              messages.slice(-Math.floor(maxDisplayHeight / 3)).map((message) => (
-                <Box key={message.id} marginBottom={1}>
-                  <Text color={message.type === 'user' ? 'green' : 'blue'}>
-                    {message.type === 'user' ? '👤' : '🤖'} {message.content}
-                  </Text>
-                </Box>
+              visibleLines.map(line => (
+                <Text key={line.key} color={line.type === 'user' ? 'green' : 'blue'}>
+                  {line.text}
+                </Text>
               ))
             )}
 
@@ -321,12 +400,25 @@ export function ChatPane({
             )}
           </Box>
 
-          {/* Chat input area */}
-          <Box borderStyle="single" borderColor="gray" paddingX={1}>
-            <Text>
-              💬 {input || 'Type your message...'}
-              <Text color="cyan">│</Text>
-            </Text>
+          {/* Chat input area with scroll indicator */}
+          <Box flexDirection="column">
+            <Box borderStyle="single" borderColor="gray" paddingX={1}>
+              <Text>
+                💬 {input || 'Type your message...'}
+                <Text color="cyan">│</Text>
+              </Text>
+            </Box>
+            
+            {/* Scroll indicator */}
+            {allLines.length > chatViewHeight && (
+              <Box justifyContent="center" marginTop={1}>
+                <Text dimColor>
+                  {autoScroll
+                    ? '📍 Bottom'
+                    : `📜 ${clampedOffset}↑ (${maxOffset - clampedOffset}↓)`}
+                </Text>
+              </Box>
+            )}
           </Box>
         </Box>
       )}
@@ -341,19 +433,22 @@ export function ChatPane({
         </Box>
       )}
 
-       {/* Help text when focused */}
-       {focused && (
-         <Box marginTop={1}>
-           <Text dimColor>
-             {mode === 'search' ? 
-               (searchResults.length > 0 ? 
-                 'Type to search • j/k: Navigate • Enter: Select • Esc: Exit' : 
-                 'Type to search • Esc: Exit') :
-              mode === 'chat' ? 'Type message • Enter: Send • Esc: Exit' :
-              'Ctrl+F: Search • Ctrl+A: Chat'}
-           </Text>
-         </Box>
-       )}
+        {/* Help text when focused */}
+        {focused && (
+          <Box marginTop={1}>
+            <Text dimColor>
+              {mode === 'search' ? 
+                (searchResults.length > 0 ? 
+                  'Type to search • j/k: Navigate • Enter: Select • Esc: Exit' : 
+                  'Type to search • Esc: Exit') :
+mode === 'chat' ? 
+                 (allLines.length > chatViewHeight ? 
+                   'Type message • Enter: Send • j/k: Scroll • Esc: Exit' : 
+                   'Type message • Enter: Send • Esc: Exit') :
+               'Ctrl+F: Search • Ctrl+A: Chat'}
+            </Text>
+          </Box>
+        )}
     </Box>
   );
 }

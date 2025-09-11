@@ -122,6 +122,7 @@ export function App(): JSX.Element {
             onSearchUpdate={updateSearch}
             onSelectFile={selectFile}
             height={terminalHeight}
+            width={chatPaneWidth}
           />
         </Box>
       </Box>
