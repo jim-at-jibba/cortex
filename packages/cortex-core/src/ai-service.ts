@@ -1,4 +1,6 @@
 import type { CortexConfig } from './config.js';
+import { OfflineManager, OfflineMode, NetworkStatus, JobPriority } from './offline-manager.js';
+import type { IJobQueue } from './offline-manager.js';
 
 export interface EmbeddingCache {
   [text: string]: {
@@ -26,6 +28,8 @@ export class AIProviderManager {
     backoffFactor: 2
   };
 
+  private offlineManager: OfflineManager | null = null;
+
   constructor(private config: CortexConfig) {}
 
   async generateEmbedding(text: string): Promise<number[]> {
@@ -35,6 +39,15 @@ export class AIProviderManager {
     const cached = this.embeddingCache[cacheKey];
     if (cached && (Date.now() - cached.timestamp) < this.cacheExpiry) {
       return cached.embedding;
+    }
+
+    // Check if we're offline and should queue the request
+    if (this.offlineManager && this.offlineManager.getStatus().networkStatus === NetworkStatus.OFFLINE) {
+      console.log('📡 Network offline - queuing embedding request');
+      await this.offlineManager.queueEmbeddingRequest(text, {
+        priority: JobPriority.MEDIUM
+      });
+      throw new Error('Network offline - embedding request queued for processing');
     }
 
     return this.withRetry(async () => {
@@ -390,5 +403,42 @@ export class AIProviderManager {
     }
 
     return results;
+  }
+
+  /**
+   * Initialize offline manager
+   */
+  async initializeOfflineManager(jobQueue: IJobQueue): Promise<void> {
+    this.offlineManager = new OfflineManager({
+      notificationCallback: (message, type) => {
+        console.log(`[OfflineManager] [${type.toUpperCase()}] ${message}`);
+      }
+    });
+
+    await this.offlineManager.initialize(this.config, jobQueue);
+    console.log('✅ Offline manager initialized for AI service');
+  }
+
+  /**
+   * Get offline manager instance
+   */
+  getOfflineManager(): OfflineManager | null {
+    return this.offlineManager;
+  }
+
+  /**
+   * Set offline mode
+   */
+  setOfflineMode(mode: OfflineMode): void {
+    if (this.offlineManager) {
+      this.offlineManager.setOfflineMode(mode);
+    }
+  }
+
+  /**
+   * Get offline status
+   */
+  getOfflineStatus() {
+    return this.offlineManager?.getStatus() || null;
   }
 }

@@ -261,3 +261,17 @@ export type {
   ErrorContext, 
   RecoverySuggestion 
 } from './error-boundary.js';
+
+// Export offline manager
+export { 
+  OfflineManager, 
+  NetworkStatus, 
+  OfflineMode,
+  type QueuedEmbeddingRequest,
+  type NetworkCheckConfig,
+  type OfflineManagerConfig,
+  type OfflineStatus,
+  type IJobQueue,
+  JobPriority,
+  JobType
+} from './offline-manager.js';

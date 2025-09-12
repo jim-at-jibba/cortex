@@ -2,6 +2,7 @@ import type { DatabaseManager, NoteRecord, EmbeddingRecord } from './database.js
 import { AIProviderManager } from './ai-service.js';
 import { RankingService, type HybridRankingConfig } from './ranking-service.js';
 import { FallbackSearchService } from './fallback-search-service.js';
+import { OfflineManager, OfflineMode, NetworkStatus } from './offline-manager.js';
 
 export interface SearchResult {
   id: string;
@@ -97,6 +98,16 @@ export class SemanticSearchService {
     try {
       // Generate embedding for the search query
       console.log(`🔍 Generating embedding for query: "${query}"`);
+      
+      // Check if we're offline before attempting to generate embedding
+      const offlineStatus = this.aiManager.getOfflineStatus();
+      if (offlineStatus && offlineStatus.networkStatus === NetworkStatus.OFFLINE) {
+        console.log('📡 Network offline - using fallback search directly');
+        const fallbackResults = await this.fallbackSearchService.searchFallback(query, options);
+        console.log(`✅ Fallback search completed with ${fallbackResults.length} results`);
+        return fallbackResults;
+      }
+      
       const queryEmbedding = await this.aiManager.generateEmbedding(query);
       
       // Get all embeddings from database
@@ -513,11 +524,13 @@ export class SemanticSearchService {
     semanticAvailable: boolean;
     fallbackAvailable: boolean;
     fallbackStats: { isReady: boolean; lastUpdate: number; noteCount?: number };
+    offlineStatus?: any;
   }> {
     return {
       semanticAvailable: await this.isSemanticSearchAvailable(),
       fallbackAvailable: this.isFallbackSearchAvailable(),
-      fallbackStats: this.fallbackSearchService.getIndexStats()
+      fallbackStats: this.fallbackSearchService.getIndexStats(),
+      offlineStatus: this.aiManager.getOfflineStatus()
     };
   }
 
