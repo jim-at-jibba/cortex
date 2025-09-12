@@ -246,3 +246,18 @@ export type { NoteMetadata } from './metadata.js';
 
 // Export file operations
 export { FileOperations } from './file-operations.js';
+
+// Export error boundary system
+export { 
+  ErrorBoundary, 
+  ErrorCategory, 
+  ErrorSeverity, 
+  globalErrorBoundary,
+  withErrorBoundary,
+  createErrorContext 
+} from './error-boundary.js';
+export type { 
+  CLIError, 
+  ErrorContext, 
+  RecoverySuggestion 
+} from './error-boundary.js';

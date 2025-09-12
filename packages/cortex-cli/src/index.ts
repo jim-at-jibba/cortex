@@ -7,6 +7,10 @@
 
 import { program } from 'commander';
 import pkg from '../package.json';
+import { setupGlobalErrorHandlers } from './cli-wrapper';
+
+// Setup global error handlers for uncaught exceptions and unhandled rejections
+setupGlobalErrorHandlers();
 
 // Simple prompt utilities
 async function promptForTitle(): Promise<string> {
@@ -62,8 +66,9 @@ program
   .option('-t, --template <name>', 'Template to use')
   .action(async (title, options) => {
     const { ConfigManager, NoteManager } = await import('cortex-core');
+    const { commandWrappers } = await import('./cli-wrapper');
     
-    try {
+    await commandWrappers.new.wrap(async () => {
       // Load configuration
       const config = await ConfigManager.load();
       const noteManager = new NoteManager(config);
@@ -88,11 +93,7 @@ program
           spawn(process.env.EDITOR, [note.path], { stdio: 'inherit' });
         }
       }
-      
-    } catch (error) {
-      console.error('❌ Failed to create note:', error);
-      process.exit(1);
-    }
+    }, { operation: 'create_note' });
   });
 
 program
@@ -103,8 +104,9 @@ program
   .option('-p, --preview', 'Preview note content instead of opening')
   .action(async (query, options) => {
     const { ConfigManager, NoteManager } = await import('cortex-core');
+    const { commandWrappers } = await import('./cli-wrapper');
     
-    try {
+    await commandWrappers.open.wrap(async () => {
       // Load configuration
       const config = await ConfigManager.load();
       const noteManager = new NoteManager(config);
@@ -206,10 +208,7 @@ program
         }
       }
       
-    } catch (error) {
-      console.error('❌ Failed to open note:', error);
-      process.exit(1);
-    }
+    }, { operation: 'open_note' });
   });
 
 program
@@ -222,8 +221,9 @@ program
   .option('--tags', 'List all tags')
   .action(async (query, options) => {
     const { ConfigManager, NoteManager, MetadataManager } = await import('cortex-core');
+    const { commandWrappers } = await import('./cli-wrapper');
     
-    try {
+    await commandWrappers.search.wrap(async () => {
       // Load configuration
       const config = await ConfigManager.load();
       const noteManager = new NoteManager(config);
@@ -302,10 +302,7 @@ program
         });
       }
       
-    } catch (error) {
-      console.error('❌ Failed to search notes:', error);
-      process.exit(1);
-    }
+    }, { operation: 'search_notes' });
   });
 
 program
@@ -315,8 +312,9 @@ program
   .option('-s, --stream', 'Use streaming responses')
   .action(async (message, options) => {
     const { ConfigManager, AIProviderManager } = await import('cortex-core');
+    const { commandWrappers } = await import('./cli-wrapper');
     
-    try {
+    await commandWrappers.chat.wrap(async () => {
       // Load configuration
       const config = await ConfigManager.load();
       
@@ -409,10 +407,7 @@ program
         }
       }
       
-    } catch (error) {
-      console.error('❌ Failed to start chat:', error);
-      process.exit(1);
-    }
+    }, { operation: 'start_chat' });
   });
 
 program
@@ -421,7 +416,9 @@ program
   .option('--force', 'Regenerate embeddings for all notes (even if they exist)')
   .option('--batch-size <number>', 'Process notes in batches (default: 10)', '10')
   .action(async (options) => {
-    try {
+    const { commandWrappers } = await import('./cli-wrapper');
+    
+    await commandWrappers.embed.wrap(async () => {
       console.log('🔄 Starting embedding generation...\n');
       
       const { ConfigManager, DatabaseManager, AIProviderManager } = await import('cortex-core');
@@ -535,10 +532,7 @@ program
         console.log('\n💡 Tip: Run the command again to retry failed embeddings');
       }
       
-    } catch (error) {
-      console.error('❌ Failed to generate embeddings:', error);
-      process.exit(1);
-    }
+    }, { operation: 'generate_embeddings' });
   });
 
 program
@@ -554,8 +548,9 @@ program
   .option('--force', 'Force stop daemon')
   .action(async (options) => {
     const { DaemonManager } = await import('cortex-daemon');
+    const { commandWrappers } = await import('./cli-wrapper');
     
-    try {
+    await commandWrappers.daemon.wrap(async () => {
       const manager = DaemonManager.getInstance();
       
       if (options.start) {
@@ -719,27 +714,19 @@ program
         console.log('  cortex daemon --health    Health report');
       }
       
-    } catch (error) {
-      console.error('❌ Daemon management error:', error instanceof Error ? error.message : 'Unknown error');
-      process.exit(1);
-    }
+    }, { operation: 'manage_daemon' });
   });
 
 program
   .command('tui')
   .description('Launch terminal user interface')
   .action(async () => {
-    try {
+    const { commandWrappers } = await import('./cli-wrapper');
+    
+    await commandWrappers.tui.wrap(async () => {
       const { startTUI } = await import('cortex-tui');
       startTUI();
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Raw mode is not supported')) {
-        console.error('❌ TUI Error: Raw mode is not supported in the current environment.');
-        console.error('💡 Try running the TUI in an interactive terminal or with: bun run ./dist/index.js tui');
-        process.exit(1);
-      }
-      throw error;
-    }
+    }, { operation: 'launch_tui' });
   });
 
 program
@@ -757,8 +744,9 @@ program
   .option('--show', 'Show current configuration')
   .action(async (options) => {
     const { ConfigManager } = await import('cortex-core');
+    const { commandWrappers } = await import('./cli-wrapper');
     
-    try {
+    await commandWrappers.config.wrap(async () => {
       if (options.show) {
         const config = await ConfigManager.load();
         console.log(JSON.stringify(config, null, 2));
@@ -785,10 +773,7 @@ program
       } else {
         console.log('Use --help to see available config commands');
       }
-    } catch (error) {
-      console.error('❌ Configuration error:', error);
-      process.exit(1);
-    }
+    }, { operation: 'manage_config' });
   });
 
 program
@@ -798,8 +783,9 @@ program
   .option('-s, --show <name>', 'Show template content')
   .action(async (options) => {
     const { ConfigManager } = await import('cortex-core');
+    const { commandWrappers } = await import('./cli-wrapper');
     
-    try {
+    await commandWrappers.template.wrap(async () => {
       // Load configuration
       await ConfigManager.load();
       
@@ -883,10 +869,7 @@ tags: []
         }
       }
       
-    } catch (error) {
-      console.error('❌ Failed to manage templates:', error);
-      process.exit(1);
-    }
+    }, { operation: 'manage_templates' });
   });
 
 program.parse();
